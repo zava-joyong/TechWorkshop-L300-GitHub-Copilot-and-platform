@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/refs/heads/main/schemas/v1.0/azure.yaml.json
+
+name: zava-storefront
+metadata:
+  template: azd-init
+
+# Azure infrastructure configuration
+infra:
+  provider: bicep
+  path: ./infra
+  module: main
+
+# Service definitions
+services:
+  web:
+    project: ./src
+    host: appservice
+    language: dotnet
+    hooks:
+      # Build the Docker image using ACR Tasks (no local Docker required)
+      predeploy:
+        shell: pwsh
+        run: |
+          $acrName = azd env get-value ACR_NAME
+          if ($acrName) {
+            Write-Host "Building Docker image using ACR Tasks..."
+            az acr build --registry $acrName --image zava-storefront:$(azd env get-value AZURE_ENV_NAME) --file ./Dockerfile .
+          }
+
+# Pipeline configuration for CI/CD
+pipeline:
+  provider: github
+
+# Hooks for deployment lifecycle
+hooks:
+  # Post-provision hook to display deployment information
+  postprovision:
+    shell: pwsh
+    run: |
+      Write-Host ""
+      Write-Host "========================================" -ForegroundColor Cyan
+      Write-Host "  ZavaStorefront Deployment Complete!" -ForegroundColor Cyan
+      Write-Host "========================================" -ForegroundColor Cyan
+      Write-Host ""
+      Write-Host "Web App URL: $(azd env get-value WEB_APP_URL)" -ForegroundColor Green
+      Write-Host "ACR Server:  $(azd env get-value ACR_LOGIN_SERVER)" -ForegroundColor Green
+      Write-Host ""
