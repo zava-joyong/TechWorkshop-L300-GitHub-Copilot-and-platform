@@ -70,7 +70,7 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
     serverFarmId: appServicePlan.id
     httpsOnly: true
     siteConfig: {
-      linuxFxVersion: 'DOTNETCORE|6.0' // Initial runtime, will be overwritten by container
+      // Note: linuxFxVersion is managed by azd deploy, not set here to avoid overwriting container image
       acrUseManagedIdentityCreds: true
       acrUserManagedIdentityID: managedIdentityClientId
       alwaysOn: false // Dev environment
@@ -106,7 +106,7 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
         }
         {
           name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
-          value: 'false'
+          value: 'true' // Enable persistent storage for Data Protection keys
         }
       ]
     }
