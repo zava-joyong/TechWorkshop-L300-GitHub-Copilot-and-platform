@@ -14,6 +14,9 @@ param sku string = 'S0'
 @description('Tags to apply to the resource')
 param tags object = {}
 
+@description('The resource ID of the Log Analytics workspace for diagnostics')
+param logAnalyticsWorkspaceId string
+
 // Azure AI Services (Cognitive Services multi-service account)
 resource aiServices 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
   name: aiServicesName
@@ -51,6 +54,35 @@ resource phi4Deployment 'Microsoft.CognitiveServices/accounts/deployments@2024-1
       version: '7'
     }
     raiPolicyName: 'Microsoft.DefaultV2'
+  }
+}
+
+// Diagnostic Settings for AI Services - sends all logs to Log Analytics
+resource aiServicesDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${aiServicesName}-diagnostics'
+  scope: aiServices
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logs: [
+      {
+        category: 'Audit'
+        enabled: true
+      }
+      {
+        category: 'RequestResponse'
+        enabled: true
+      }
+      {
+        category: 'Trace'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
   }
 }
 

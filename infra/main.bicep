@@ -84,6 +84,7 @@ module aiServices 'modules/aiservices.bicep' = {
     aiServicesName: aiServicesName
     sku: 'S0'
     tags: allTags
+    logAnalyticsWorkspaceId: monitoring.outputs.logAnalyticsId
   }
 }
 
