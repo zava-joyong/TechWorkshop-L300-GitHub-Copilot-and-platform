@@ -1,8 +1,9 @@
-namespace ZavaStorefront.Models;
-
-public class ChatMessage
+namespace ZavaStorefront.Models
 {
-    public string Role { get; set; } = string.Empty;
-    public string Content { get; set; } = string.Empty;
-    public DateTime Timestamp { get; set; }
+    public class ChatMessage
+    {
+        public string Role { get; set; } = string.Empty;
+        public string Content { get; set; } = string.Empty;
+        public DateTime Timestamp { get; set; }
+    }
 }

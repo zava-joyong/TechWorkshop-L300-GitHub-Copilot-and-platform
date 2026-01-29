@@ -3,18 +3,19 @@ using ZavaStorefront.Models;
 using ZavaStorefront.Services;
 using Newtonsoft.Json;
 
-namespace ZavaStorefront.Controllers;
-
-public class ChatController : Controller
+namespace ZavaStorefront.Controllers
 {
-    private readonly ILogger<ChatController> _logger;
-    private readonly ChatService _chatService;
-
-    public ChatController(ILogger<ChatController> logger, ChatService chatService)
+    public class ChatController : Controller
     {
-        _logger = logger;
-        _chatService = chatService;
-    }
+        private readonly ILogger<ChatController> _logger;
+        private readonly ChatService _chatService;
+        private const int MAX_MESSAGES_IN_HISTORY = 50;
+
+        public ChatController(ILogger<ChatController> logger, ChatService chatService)
+        {
+            _logger = logger;
+            _chatService = chatService;
+        }
 
     public IActionResult Index()
     {
@@ -79,6 +80,12 @@ public class ChatController : Controller
             Timestamp = DateTime.UtcNow
         });
 
+        // Limit chat history to prevent unbounded session growth
+        if (chatHistory.Count > MAX_MESSAGES_IN_HISTORY)
+        {
+            chatHistory = chatHistory.Skip(chatHistory.Count - MAX_MESSAGES_IN_HISTORY).ToList();
+        }
+
         // Save updated chat history to session
         HttpContext.Session.SetString("ChatHistory", JsonConvert.SerializeObject(chatHistory));
 
@@ -104,4 +111,6 @@ public class ChatController : Controller
 
         return RedirectToAction("Index");
     }
+    }
 }
+

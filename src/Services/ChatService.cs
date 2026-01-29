@@ -2,18 +2,22 @@ using Azure.Identity;
 using System.Text;
 using System.Text.Json;
 
-namespace ZavaStorefront.Services;
-
-public class ChatService
+namespace ZavaStorefront.Services
 {
-    private readonly ILogger<ChatService> _logger;
-    private readonly IConfiguration _configuration;
-    private readonly HttpClient _httpClient;
-    private readonly string? _endpoint;
-    private readonly bool _isConfigured;
-
-    public ChatService(ILogger<ChatService> logger, IConfiguration configuration, IHttpClientFactory httpClientFactory)
+    public class ChatService
     {
+        private readonly ILogger<ChatService> _logger;
+        private readonly IConfiguration _configuration;
+        private readonly HttpClient _httpClient;
+        private readonly string? _endpoint;
+        private readonly bool _isConfigured;
+
+        private const string API_VERSION = "2024-02-01";
+        private const string MODEL_NAME = "Phi-4";
+        private const int MAX_MESSAGES_IN_HISTORY = 50;
+
+        public ChatService(ILogger<ChatService> logger, IConfiguration configuration, IHttpClientFactory httpClientFactory)
+        {
         _logger = logger;
         _configuration = configuration;
         _httpClient = httpClientFactory.CreateClient();
@@ -66,19 +70,19 @@ public class ChatService
                 },
                 max_tokens = 500,
                 temperature = 0.7,
-                model = "Phi-4"
+                model = MODEL_NAME
             };
 
             var requestJson = JsonSerializer.Serialize(requestBody);
             var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
-            // Add authorization header
-            _httpClient.DefaultRequestHeaders.Clear();
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.Token}");
+            // Create request with authorization header
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{_endpoint?.TrimEnd('/')}/openai/deployments/{MODEL_NAME}/chat/completions?api-version={API_VERSION}");
+            request.Headers.Add("Authorization", $"Bearer {token.Token}");
+            request.Content = content;
 
             // Send request to Azure AI Services
-            var chatEndpoint = $"{_endpoint?.TrimEnd('/')}/openai/deployments/Phi-4/chat/completions?api-version=2024-02-01";
-            var response = await _httpClient.PostAsync(chatEndpoint, content);
+            var response = await _httpClient.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
@@ -151,4 +155,6 @@ public class ChatService
             return $"Thank you for your message: \"{userMessage}\". I'm currently in demo mode. When connected to Azure AI Services, I'll be able to provide more detailed and intelligent responses!";
         }
     }
+    }
 }
+
