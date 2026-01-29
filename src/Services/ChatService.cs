@@ -74,10 +74,10 @@ namespace ZavaStorefront.Services
             };
 
             var requestJson = JsonSerializer.Serialize(requestBody);
-            var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
+            using var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
             // Create request with authorization header
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_endpoint?.TrimEnd('/')}/openai/deployments/{MODEL_NAME}/chat/completions?api-version={API_VERSION}");
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_endpoint?.TrimEnd('/')}/openai/deployments/{MODEL_NAME}/chat/completions?api-version={API_VERSION}");
             request.Headers.Add("Authorization", $"Bearer {token.Token}");
             request.Content = content;
 
