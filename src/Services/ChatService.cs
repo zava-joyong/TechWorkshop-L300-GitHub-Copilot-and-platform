@@ -101,10 +101,25 @@ public class ChatService
             _logger.LogWarning("Failed to get response from Azure AI Services. Status: {Status}", response.StatusCode);
             return "I'm sorry, I couldn't process your request at this time. Please try again.";
         }
-        catch (Exception ex)
+        catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Error calling Azure AI Services");
-            return "I'm sorry, I encountered an error processing your request. Please try again later.";
+            _logger.LogError(ex, "HTTP error calling Azure AI Services");
+            return "I'm sorry, I encountered a network error while processing your request. Please try again later.";
+        }
+        catch (TaskCanceledException ex)
+        {
+            _logger.LogError(ex, "Request to Azure AI Services was canceled or timed out");
+            return "I'm sorry, your request took too long to process. Please try again.";
+        }
+        catch (OperationCanceledException ex)
+        {
+            _logger.LogError(ex, "Operation to call Azure AI Services was canceled");
+            return "I'm sorry, your request was canceled before it could be completed. Please try again.";
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Error parsing response from Azure AI Services");
+            return "I'm sorry, I encountered an error processing the service response. Please try again later.";
         }
     }
 
