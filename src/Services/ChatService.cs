@@ -1,4 +1,5 @@
 using Azure.Identity;
+using Azure.AI.ContentSafety;
 using System.Text;
 using System.Text.Json;
 
@@ -18,24 +19,24 @@ namespace ZavaStorefront.Services
 
         public ChatService(ILogger<ChatService> logger, IConfiguration configuration, IHttpClientFactory httpClientFactory)
         {
-        _logger = logger;
-        _configuration = configuration;
-        _httpClient = httpClientFactory.CreateClient();
+            _logger = logger;
+            _configuration = configuration;
+            _httpClient = httpClientFactory.CreateClient();
 
-        // Get Azure AI Services endpoint from configuration
-        _endpoint = _configuration["AZURE_AI_SERVICES_ENDPOINT"];
-        
-        if (!string.IsNullOrEmpty(_endpoint))
-        {
-            _isConfigured = true;
-            _logger.LogInformation("ChatService initialized with Azure AI Services endpoint: {Endpoint}", _endpoint);
+            // Get Azure AI Services endpoint from configuration
+            _endpoint = _configuration["AZURE_AI_SERVICES_ENDPOINT"];
+            
+            if (!string.IsNullOrEmpty(_endpoint))
+            {
+                _isConfigured = true;
+                _logger.LogInformation("ChatService initialized with Azure AI Services endpoint: {Endpoint}", _endpoint);
+            }
+            else
+            {
+                _isConfigured = false;
+                _logger.LogWarning("AZURE_AI_SERVICES_ENDPOINT not configured. ChatService will operate in mock mode.");
+            }
         }
-        else
-        {
-            _isConfigured = false;
-            _logger.LogWarning("AZURE_AI_SERVICES_ENDPOINT not configured. ChatService will operate in mock mode.");
-        }
-    }
 
     public async Task<string> SendMessageAsync(string userMessage)
     {
@@ -45,6 +46,17 @@ namespace ZavaStorefront.Services
         }
 
         _logger.LogInformation("Processing chat message: {Message}", userMessage);
+
+        // Content Safety check before processing
+        if (_isConfigured)
+        {
+            var (isSafe, reason) = await CheckContentSafetyAsync(userMessage);
+            if (!isSafe)
+            {
+                _logger.LogWarning("Content Safety blocked message. Reason: {Reason}", reason);
+                return "I'm sorry, but I can't process that message as it may contain inappropriate content. Please rephrase your question and try again.";
+            }
+        }
 
         // If not configured, return a mock response
         if (!_isConfigured)
@@ -156,6 +168,47 @@ namespace ZavaStorefront.Services
             return $"Thank you for your message: \"{userMessage}\". I'm currently in demo mode. When connected to Azure AI Services, I'll be able to provide more detailed and intelligent responses!";
         }
     }
+
+    /// <summary>
+    /// Checks user message against Azure AI Content Safety API.
+    /// Returns (isSafe, reason) tuple. Severity >= 2 is considered unsafe.
+    /// </summary>
+    private async Task<(bool IsSafe, string? Reason)> CheckContentSafetyAsync(string text)
+    {
+        try
+        {
+            var credential = new DefaultAzureCredential();
+            var client = new ContentSafetyClient(new Uri(_endpoint!), credential);
+
+            var request = new AnalyzeTextOptions(text);
+
+            var response = await client.AnalyzeTextAsync(request);
+
+            // Check all categories - severity >= 2 is unsafe
+            const int unsafeThreshold = 2;
+
+            if (response.Value.CategoriesAnalysis != null)
+            {
+                foreach (var category in response.Value.CategoriesAnalysis)
+                {
+                    if (category.Severity >= unsafeThreshold)
+                    {
+                        _logger.LogWarning("Content Safety flagged: Category={Category}, Severity={Severity}", 
+                            category.Category, category.Severity);
+                        return (false, $"{category.Category} (severity: {category.Severity})");
+                    }
+                }
+            }
+
+            _logger.LogInformation("Content Safety check passed for message");
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Content Safety API error - allowing message to proceed");
+            // Fail open for availability - log the error but don't block
+            return (true, null);
+        }
     }
 }
-
+}

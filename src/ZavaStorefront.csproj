@@ -7,6 +7,7 @@
     <UserSecretsId>9015c856-df6d-4776-afcb-976a7d1046ed</UserSecretsId>
   </PropertyGroup>
  <ItemGroup>
+   <PackageReference Include="Azure.AI.ContentSafety" Version="1.0.0" />
    <PackageReference Include="Azure.AI.Inference" Version="1.0.0-beta.2" />
    <PackageReference Include="Azure.Identity" Version="1.17.1" />
    <PackageReference Include="System.Text.Encodings.Web" Version="10.0.2" />
