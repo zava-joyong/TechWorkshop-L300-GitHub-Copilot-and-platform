@@ -61,7 +61,7 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
   })
   kind: 'app,linux,container'
   identity: {
-    type: 'UserAssigned'
+    type: 'SystemAssigned, UserAssigned'
     userAssignedIdentities: {
       '${managedIdentityId}': {}
     }
@@ -159,5 +159,5 @@ output webAppHostname string = webApp.properties.defaultHostName
 @description('The name of the Web App')
 output webAppName string = webApp.name
 
-@description('The principal ID of the Web App system-assigned identity')
-output webAppPrincipalId string = webApp.identity.userAssignedIdentities[managedIdentityId].principalId
+@description('The principal ID of the Web App system-assigned managed identity')
+output webAppSystemAssignedPrincipalId string = webApp.identity.principalId

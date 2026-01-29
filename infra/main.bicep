@@ -110,7 +110,8 @@ module appService 'modules/appservice.bicep' = {
 module roleAssignments 'modules/roleassignments.bicep' = {
   name: 'roleassignments-deployment'
   params: {
-    principalId: identity.outputs.principalId
+    userAssignedPrincipalId: identity.outputs.principalId
+    systemAssignedPrincipalId: appService.outputs.webAppSystemAssignedPrincipalId
     acrId: acr.outputs.registryId
     aiServicesId: aiServices.outputs.aiServicesId
   }

@@ -29,7 +29,7 @@ resource aiServices 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
     networkAcls: {
       defaultAction: 'Allow'
     }
-    disableLocalAuth: false // Allow key-based auth for dev, but prefer managed identity
+    disableLocalAuth: true // Enforce managed identity only - no API keys
   }
   identity: {
     type: 'SystemAssigned'

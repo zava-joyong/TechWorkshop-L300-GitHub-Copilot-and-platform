@@ -55,8 +55,9 @@ namespace ZavaStorefront.Services
 
         try
         {
-            // Get access token using Managed Identity
-            var credential = new ManagedIdentityCredential();
+            // Get access token using System-Assigned Managed Identity
+            // DefaultAzureCredential automatically uses system-assigned identity in Azure
+            var credential = new DefaultAzureCredential();
             var token = await credential.GetTokenAsync(
                 new Azure.Core.TokenRequestContext(new[] { "https://cognitiveservices.azure.com/.default" }));
 
