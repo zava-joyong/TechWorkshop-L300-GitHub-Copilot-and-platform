@@ -4,6 +4,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpClient();
 
 // Add session support
 builder.Services.AddDistributedMemoryCache();
@@ -18,6 +19,7 @@ builder.Services.AddSession(options =>
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<ProductService>();
 builder.Services.AddScoped<CartService>();
+builder.Services.AddScoped<ChatService>();
 
 var app = builder.Build();
 

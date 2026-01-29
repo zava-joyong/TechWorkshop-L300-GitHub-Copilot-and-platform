@@ -7,9 +7,11 @@
     <UserSecretsId>9015c856-df6d-4776-afcb-976a7d1046ed</UserSecretsId>
   </PropertyGroup>
  <ItemGroup>
+   <PackageReference Include="Azure.AI.Inference" Version="1.0.0-beta.2" />
+   <PackageReference Include="Azure.Identity" Version="1.17.1" />
    <PackageReference Include="System.Text.Encodings.Web" Version="10.0.2" />
-   <PackageReference Include="Newtonsoft.Json" Version="13.0.4"  />
-   <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.4"  />
+   <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+   <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.4" />
  </ItemGroup>
 
 </Project>
