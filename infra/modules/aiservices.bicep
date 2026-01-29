@@ -36,6 +36,24 @@ resource aiServices 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
   }
 }
 
+// Phi-4 Model Deployment
+resource phi4Deployment 'Microsoft.CognitiveServices/accounts/deployments@2024-10-01' = {
+  parent: aiServices
+  name: 'Phi-4'
+  sku: {
+    name: 'GlobalStandard'
+    capacity: 1
+  }
+  properties: {
+    model: {
+      format: 'Microsoft'
+      name: 'Phi-4'
+      version: '7'
+    }
+    raiPolicyName: 'Microsoft.DefaultV2'
+  }
+}
+
 // Outputs
 @description('The resource ID of AI Services')
 output aiServicesId string = aiServices.id
