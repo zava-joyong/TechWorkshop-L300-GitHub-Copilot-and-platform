@@ -177,12 +177,16 @@ namespace ZavaStorefront.Services
     {
         try
         {
+            _logger.LogInformation("Starting Content Safety check for message");
+            
             var credential = new DefaultAzureCredential();
             var client = new ContentSafetyClient(new Uri(_endpoint!), credential);
 
             var request = new AnalyzeTextOptions(text);
 
+            _logger.LogInformation("Calling Content Safety API at endpoint: {Endpoint}", _endpoint);
             var response = await client.AnalyzeTextAsync(request);
+            _logger.LogInformation("Content Safety API response received");
 
             // Check all categories - severity >= 2 is unsafe
             const int unsafeThreshold = 2;
@@ -191,6 +195,9 @@ namespace ZavaStorefront.Services
             {
                 foreach (var category in response.Value.CategoriesAnalysis)
                 {
+                    _logger.LogInformation("Content Safety category: {Category}, Severity: {Severity}", 
+                        category.Category, category.Severity);
+                    
                     if (category.Severity >= unsafeThreshold)
                     {
                         _logger.LogWarning("Content Safety flagged: Category={Category}, Severity={Severity}", 
@@ -199,13 +206,17 @@ namespace ZavaStorefront.Services
                     }
                 }
             }
+            else
+            {
+                _logger.LogWarning("Content Safety response had no CategoriesAnalysis");
+            }
 
             _logger.LogInformation("Content Safety check passed for message");
             return (true, null);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Content Safety API error - allowing message to proceed");
+            _logger.LogError(ex, "Content Safety API error: {Message}", ex.Message);
             // Fail open for availability - log the error but don't block
             return (true, null);
         }
