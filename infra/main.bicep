@@ -118,6 +118,17 @@ module roleAssignments 'modules/roleassignments.bicep' = {
   }
 }
 
+// AI Services Observability Workbook
+module workbook 'modules/workbook.bicep' = {
+  name: 'workbook-deployment'
+  params: {
+    location: location
+    workbookName: 'AI Services Observability'
+    logAnalyticsWorkspaceId: monitoring.outputs.logAnalyticsId
+    tags: allTags
+  }
+}
+
 // ============================================================================
 // Outputs
 // ============================================================================
